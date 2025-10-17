@@ -3,7 +3,7 @@ package task2
 import (
 	"fmt"
 	"os"
-	"strings"
+	"bufio"
 )
 
 func FindCommonWords(outputFilename string, inputFilenames ...string) error {
@@ -15,25 +15,38 @@ func FindCommonWords(outputFilename string, inputFilenames ...string) error {
 	// m = make(map[string]int)
 	m := make(map[string]int)
 	for _, filename := range inputFilenames {
-		data, err := os.ReadFile(filename) // вообще это плохое решение, весь файл в память плохо пихать
+		file, err := os.Open(filename)
 		if err != nil {
 			return ErrOpenFile
 		}
-		text := string(data)
-		for _ , word := range strings.Fields(text) {
-			m[word] += 1
+		defer file.Close()
+		
+		scanner := bufio.NewScanner(file)
+		scanner.Split(bufio.ScanWords)
+		
+		for scanner.Scan() {
+			word := scanner.Text()
+			m[word]++
+		}
+		
+		if err := scanner.Err(); err != nil {
+			return err
 		}
 	}
+
 	fileOut, err := os.OpenFile(outputFilename, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil{
 		return ErrOpenFile
 	}
+	defer fileOut.Close()
+
+
 	for key, value := range m {
 		if len(inputFilenames) == value  {
 			fmt.Fprint(fileOut ,key)
 		}
 	}
-	defer fileOut.Close()
+	
 
 	return nil
 }
