@@ -37,10 +37,9 @@ func FilterCommonDigits(a, b int) (int, int, error){
 
 	var common[10] bool
 	for i := range 10 {
-		if digitA[i] && digitB[i] {
-			common[i] = true
-		}
+		common[i] = digitA[i] && digitB[i]
 	}
+
 	// -=-=-=-=-=-=-=-=-=-
 
 	newA := NewDigit(a, &common)
